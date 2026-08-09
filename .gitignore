@@ -1,0 +1,11 @@
+# Ignore cache and temporary data
+cache.xml
+
+# Ignore utility files and raw images used during compilation
+ImgToIco.exe
+ImgToIco.cs
+logo.jpg
+
+# OS-specific
+.DS_Store
+Thumbs.db
