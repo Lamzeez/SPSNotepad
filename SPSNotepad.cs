@@ -1127,11 +1127,11 @@ namespace SPSNotepad
         private Label lblVisn;
         
         private Label lblPhone;
-        private RichTextBox txtPhone;
+        private TextBox txtPhone;
         private Label lblEmail;
-        private RichTextBox txtEmail;
+        private TextBox txtEmail;
 
-        private List<RichTextBox> inputs = new List<RichTextBox>();
+        private List<TextBox> inputs = new List<TextBox>();
         private TrackerContainer container;
 
         public TrackerTile(TrackerContainer container)
@@ -1181,13 +1181,10 @@ namespace SPSNotepad
                 Margin = new Padding(3, 3, 3, 3)
             };
             
-            var txt = new RichTextBox { 
+            var txt = new TextBox { 
                 Dock = DockStyle.Fill, 
                 Margin = new Padding(3, 3, 3, 3),
-                HideSelection = true,
-                Multiline = false,
-                ScrollBars = RichTextBoxScrollBars.None,
-                WordWrap = false
+                HideSelection = true
             };
             txt.TextChanged += (s, e) => container.MarkDirty();
             
@@ -1239,7 +1236,7 @@ namespace SPSNotepad
             SetEmailVisible(!lblEmail.Visible);
         }
 
-        public List<RichTextBox> GetInputs()
+        public List<TextBox> GetInputs()
         {
             return inputs;
         }
@@ -1250,7 +1247,7 @@ namespace SPSNotepad
             for (int r = 0; r < this.RowCount; r++)
             {
                 Label lbl = (Label)this.GetControlFromPosition(0, r);
-                RichTextBox txt = (RichTextBox)this.GetControlFromPosition(1, r);
+                TextBox txt = (TextBox)this.GetControlFromPosition(1, r);
                 
                 if (lbl != null && txt != null && lbl.Visible)
                 {
