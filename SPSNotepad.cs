@@ -76,7 +76,7 @@ namespace SPSNotepad
 
         private class MatchResult
         {
-            public TextBox Control;
+            public TextBoxBase Control;
             public int StartIndex;
             public int Length;
             public Control TileWrapper;
@@ -273,7 +273,7 @@ namespace SPSNotepad
             if (currentTab == null || currentTab.Controls.Count == 0) return;
 
             TrackerContainer container = currentTab.Controls[0] as TrackerContainer;
-            TextBox notepad = currentTab.Controls[0] as TextBox;
+            RichTextBox notepad = currentTab.Controls[0] as RichTextBox;
 
             if (container != null)
             {
@@ -424,7 +424,7 @@ namespace SPSNotepad
                 return true;
             }
             
-            TextBox tb = page.Controls[0] as TextBox;
+            RichTextBox tb = page.Controls[0] as RichTextBox;
             if (tb != null)
             {
                 return string.IsNullOrEmpty(tb.Text);
@@ -463,7 +463,7 @@ namespace SPSNotepad
                     if (page.Controls.Count > 0)
                     {
                         TrackerContainer container = page.Controls[0] as TrackerContainer;
-                        TextBox tb = page.Controls[0] as TextBox;
+                        RichTextBox tb = page.Controls[0] as RichTextBox;
 
                         if (container != null)
                         {
@@ -635,15 +635,15 @@ namespace SPSNotepad
             }
         }
 
-        private TextBox AddNotepadTab(string title)
+        private RichTextBox AddNotepadTab(string title)
         {
             var tab = new TabPage(title);
-            var txt = new TextBox { 
+            var txt = new RichTextBox { 
                 Dock = DockStyle.Fill, 
-                Multiline = true, 
-                ScrollBars = ScrollBars.Both, 
+                ScrollBars = RichTextBoxScrollBars.Both, 
                 Font = new Font("Consolas", currentZoom),
-                HideSelection = false
+                HideSelection = false,
+                DetectUrls = false
             };
             txt.TextChanged += (s, e) => { if (!tab.Text.EndsWith("*")) tab.Text += "*"; };
             tab.Controls.Add(txt);
@@ -674,7 +674,7 @@ namespace SPSNotepad
             if (page.Controls.Count == 0) return false;
 
             TrackerContainer container = page.Controls[0] as TrackerContainer;
-            TextBox notepad = page.Controls[0] as TextBox;
+            RichTextBox notepad = page.Controls[0] as RichTextBox;
 
             string filePath = page.Tag as string;
             bool hasPath = !string.IsNullOrEmpty(filePath);
@@ -897,9 +897,9 @@ namespace SPSNotepad
             tileWrapper.BringToFront();
             container.Tiles.Add(tile);
         }
-        private TextBox GetFocusedTextBox(Control container)
+        private TextBoxBase GetFocusedTextBox(Control container)
         {
-            TextBox tb = container as TextBox;
+            TextBoxBase tb = container as TextBoxBase;
             if (tb != null && tb.Focused) return tb;
             foreach (Control c in container.Controls)
             {
@@ -911,7 +911,7 @@ namespace SPSNotepad
             return null;
         }
 
-        private void DeleteWordBeforeCursor(TextBox tb)
+        private void DeleteWordBeforeCursor(TextBoxBase tb)
         {
             if (tb.SelectionStart > 0)
             {
@@ -949,9 +949,21 @@ namespace SPSNotepad
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
+            if (keyData == (Keys.Control | Keys.V))
+            {
+                TextBoxBase activeTextBox = GetFocusedTextBox(this);
+                if (activeTextBox != null && !activeTextBox.ReadOnly)
+                {
+                    if (Clipboard.ContainsText(TextDataFormat.Text))
+                    {
+                        activeTextBox.SelectedText = Clipboard.GetText(TextDataFormat.Text);
+                    }
+                    return true;
+                }
+            }
             if (keyData == (Keys.Control | Keys.Back))
             {
-                TextBox activeTextBox = GetFocusedTextBox(this);
+                TextBoxBase activeTextBox = GetFocusedTextBox(this);
                 if (activeTextBox != null && !activeTextBox.ReadOnly)
                 {
                     DeleteWordBeforeCursor(activeTextBox);
@@ -1008,7 +1020,7 @@ namespace SPSNotepad
 
             var currentTab = mainTabControl.SelectedTab;
             TrackerContainer container = currentTab != null && currentTab.Controls.Count > 0 ? currentTab.Controls[0] as TrackerContainer : null;
-            TextBox notepad = currentTab != null && currentTab.Controls.Count > 0 ? currentTab.Controls[0] as TextBox : null;
+            RichTextBox notepad = currentTab != null && currentTab.Controls.Count > 0 ? currentTab.Controls[0] as RichTextBox : null;
 
             if (container != null)
             {
@@ -1109,12 +1121,11 @@ namespace SPSNotepad
         private Label lblVisn;
         
         private Label lblPhone;
-        private TextBox txtPhone;
-        
+        private RichTextBox txtPhone;
         private Label lblEmail;
-        private TextBox txtEmail;
+        private RichTextBox txtEmail;
 
-        private List<TextBox> inputs = new List<TextBox>();
+        private List<RichTextBox> inputs = new List<RichTextBox>();
         private TrackerContainer container;
 
         public TrackerTile(TrackerContainer container)
@@ -1164,10 +1175,13 @@ namespace SPSNotepad
                 Margin = new Padding(3, 3, 3, 3)
             };
             
-            var txt = new TextBox { 
+            var txt = new RichTextBox { 
                 Dock = DockStyle.Fill, 
                 Margin = new Padding(3, 3, 3, 3),
-                HideSelection = false
+                HideSelection = false,
+                Multiline = false,
+                ScrollBars = RichTextBoxScrollBars.None,
+                WordWrap = false
             };
             txt.TextChanged += (s, e) => container.MarkDirty();
             
@@ -1219,7 +1233,7 @@ namespace SPSNotepad
             SetEmailVisible(!lblEmail.Visible);
         }
 
-        public List<TextBox> GetInputs()
+        public List<RichTextBox> GetInputs()
         {
             return inputs;
         }
@@ -1230,7 +1244,7 @@ namespace SPSNotepad
             for (int r = 0; r < this.RowCount; r++)
             {
                 Label lbl = (Label)this.GetControlFromPosition(0, r);
-                TextBox txt = (TextBox)this.GetControlFromPosition(1, r);
+                RichTextBox txt = (RichTextBox)this.GetControlFromPosition(1, r);
                 
                 if (lbl != null && txt != null && lbl.Visible)
                 {
