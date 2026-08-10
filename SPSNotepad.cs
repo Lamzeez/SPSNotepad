@@ -897,9 +897,67 @@ namespace SPSNotepad
             tileWrapper.BringToFront();
             container.Tiles.Add(tile);
         }
+        private TextBox GetFocusedTextBox(Control container)
+        {
+            TextBox tb = container as TextBox;
+            if (tb != null && tb.Focused) return tb;
+            foreach (Control c in container.Controls)
+            {
+                if (c.ContainsFocus)
+                {
+                    return GetFocusedTextBox(c);
+                }
+            }
+            return null;
+        }
+
+        private void DeleteWordBeforeCursor(TextBox tb)
+        {
+            if (tb.SelectionStart > 0)
+            {
+                int start = tb.SelectionStart;
+                int len = tb.SelectionLength;
+
+                if (len > 0)
+                {
+                    tb.SelectedText = "";
+                    return;
+                }
+
+                string text = tb.Text;
+                int ptr = start - 1;
+                
+                while (ptr >= 0 && char.IsWhiteSpace(text[ptr])) ptr--;
+                
+                if (ptr >= 0)
+                {
+                    bool isAlphanumeric = char.IsLetterOrDigit(text[ptr]);
+                    while (ptr >= 0 && (char.IsLetterOrDigit(text[ptr]) == isAlphanumeric) && !char.IsWhiteSpace(text[ptr]))
+                    {
+                        ptr--;
+                    }
+                }
+                
+                int deleteLen = start - (ptr + 1);
+                if (deleteLen > 0)
+                {
+                    tb.Select(ptr + 1, deleteLen);
+                    tb.SelectedText = "";
+                }
+            }
+        }
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
+            if (keyData == (Keys.Control | Keys.Back))
+            {
+                TextBox activeTextBox = GetFocusedTextBox(this);
+                if (activeTextBox != null && !activeTextBox.ReadOnly)
+                {
+                    DeleteWordBeforeCursor(activeTextBox);
+                    return true;
+                }
+            }
             if (keyData == (Keys.Control | Keys.Oemplus) || keyData == (Keys.Control | Keys.Add))
             {
                 Zoom(1);
