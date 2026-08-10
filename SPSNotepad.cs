@@ -320,6 +320,7 @@ namespace SPSNotepad
 
             foreach (var m in currentMatches)
             {
+                m.Control.HideSelection = true;
                 m.Control.SelectionLength = 0;
             }
 
@@ -330,6 +331,7 @@ namespace SPSNotepad
             lblFindCount.Text = string.Format("{0}/{1}", currentMatchIndex + 1, currentMatches.Count);
 
             var match = currentMatches[currentMatchIndex];
+            match.Control.HideSelection = false;
             match.Control.Select(match.StartIndex, match.Length);
             match.Control.ScrollToCaret();
 
@@ -642,7 +644,7 @@ namespace SPSNotepad
                 Dock = DockStyle.Fill, 
                 ScrollBars = RichTextBoxScrollBars.Both, 
                 Font = new Font("Consolas", currentZoom),
-                HideSelection = false,
+                HideSelection = true,
                 DetectUrls = false
             };
             txt.TextChanged += (s, e) => { if (!tab.Text.EndsWith("*")) tab.Text += "*"; };
@@ -1005,7 +1007,11 @@ namespace SPSNotepad
             if (keyData == Keys.Escape && findPanel.Visible)
             {
                 findPanel.Visible = false;
-                foreach (var m in currentMatches) m.Control.SelectionLength = 0;
+                foreach (var m in currentMatches) 
+                {
+                    m.Control.HideSelection = true;
+                    m.Control.SelectionLength = 0;
+                }
                 var currentTab1 = mainTabControl.SelectedTab;
                 if (currentTab1 != null && currentTab1.Controls.Count > 0)
                     currentTab1.Controls[0].Focus();
@@ -1178,7 +1184,7 @@ namespace SPSNotepad
             var txt = new RichTextBox { 
                 Dock = DockStyle.Fill, 
                 Margin = new Padding(3, 3, 3, 3),
-                HideSelection = false,
+                HideSelection = true,
                 Multiline = false,
                 ScrollBars = RichTextBoxScrollBars.None,
                 WordWrap = false
